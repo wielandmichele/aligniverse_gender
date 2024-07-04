@@ -1,0 +1,10 @@
+streamlit
+streamlit_survey
+pyodbc
+streamlit-scrollable-textbox
+st-gsheets-connection
+mysql-connector-python
+cloud-sql-python-connector
+gcsfs
+sqlalchemy
+st-files-connection
