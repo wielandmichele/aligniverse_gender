@@ -109,6 +109,11 @@ def insert_participant_and_get_id():
         
         return last_id
 
+def mark_as_rated(prompt_id):
+    with pool.connect() as db_conn:
+        query = text("UPDATE df_prompts SET rated = 1 WHERE prompt_id = :prompt_id")
+        db_conn.execute(query, prompt_id=prompt_id)
+
 def save_to_db():
     if 'participant_id' not in st.session_state:
         participant_id = insert_participant_and_get_id()
@@ -121,6 +126,10 @@ def save_to_db():
     res_q3 = st.session_state.key_q3
     res_q4 = st.session_state.key_q4
     res_q5 = st.session_state.key_q5
+
+    if all([res_q1, res_q2, res_q3, res_q4, res_q5]):
+        st.session_state['count'] = st.session_state['count'] + 1
+
     insert_rating(
         participant_id, #participant_id
         sample_row[1], # question_id
@@ -131,20 +140,21 @@ def save_to_db():
         res_q4,    # rating_sensitivity
         res_q5     # rating_helpfulness
         )
-excluded_question_ids = [0]
+    
+    mark_as_rated(sample_row[0])
+
+if 'count' not in st.session_state:
+    st.session_state['count'] = 0
 
 with st.form(key = "form_rating", clear_on_submit= True):
     with pool.connect() as db_conn:
-        query = text("SELECT * FROM df_prompts WHERE question_id NOT IN :excluded_question_ids ORDER BY RAND() LIMIT 1")
-        query = query.params(excluded_question_ids=excluded_question_ids)
+        query = text("SELECT * FROM df_prompts WHERE rated = 0 ORDER BY RAND() LIMIT 1")
         result = db_conn.execute(query)
     
     sample_row = result.fetchone()
     question_id = sample_row[1]
-    excluded_question_ids.append(question_id)
     
     st.subheader("Prompt")
-    #st.write("{} [Source]({})".format(sample_row["question"].values[0],sample_row["dataset_source"].values[0]))
     st.write("{} [Source]({})".format(sample_row[6],sample_row[2]))
 
     st.subheader("Answer")
@@ -166,10 +176,18 @@ with st.form(key = "form_rating", clear_on_submit= True):
 
     q5 = st.radio("The answer exhibits **helpfulness**", options=["strongly agree", "agree", "neutral", "disagree", "strongly disagree"], horizontal=True, index = None, key = "key_q5")
     st.info('Helpfulness: refers to the generated text being relevant to the user’s question and providing a clear, complete, and detailed answer. [Source](https://aclanthology.org/2023.emnlp-industry.62.pdf)', icon="ℹ️")
+    
+    st.write("Please pick a single option for each criterion. Only complete submissions will be counted.")
+    
+    st.form_submit_button("Submit and View Next", on_click = save_to_db)  
 
-    st.form_submit_button("Submit and View Next", on_click = save_to_db)   
 
-st.write("You are welcome to rate as many answers as you prefer. Once you're finished, you can end your participation.")
-if st.button("End participation"):
-    st.switch_page("pages/Demographics.py")
+if st.session_state['count'] < 5:
+    st.write("Please rate at least 5 prompt-answer pairs to finish the survey.")
+    st.write(f"You have rated {st.session_state['count']} prompt-answer pairs so far.") 
+
+else:
+    st.write("You have rated at least 5 prompt-answer pairs and you can finish your participation now.")
+    if st.button("End participation"):
+        st.switch_page("pages/Demographics.py")
 
