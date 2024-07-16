@@ -1,9 +1,11 @@
 import streamlit as st
 import streamlit_survey as ss
 import streamlit_scrollable_textbox as stx
+
 import json
 import pandas as pd
 from sqlalchemy import create_engine, text
+
 import pymysql
 import sqlalchemy
 import os
@@ -107,7 +109,6 @@ tunnel = SSHTunnelForwarder(
 )
 tunnel.start()
 
-# Function to create a new database connection
 def getconn():
     conn = pymysql.connect(
         host='127.0.0.1',
@@ -118,7 +119,6 @@ def getconn():
     )
     return conn
 
-# Create a SQLAlchemy engine
 pool = create_engine(
     "mysql+pymysql://",
     creator=getconn,
@@ -135,11 +135,33 @@ def insert_participant_and_get_id():
         
         return last_id
 
+def insert_prolific_id(participant_id, prolific_id):
+    insert_query = """
+    INSERT INTO df_prolific_ids (
+        participant_id,
+        prolific_id
+    ) VALUES (%s, %s)
+    """
+    with pool.connect() as db_conn:
+        db_conn.execute(insert_query, (
+            participant_id,
+            prolific_id
+        ))
+
 if not all([consent1, consent2, consent3]):
     st.write("Please give your consent by ticking all three boxes.")
 
 elif all([consent1, consent2, consent3]):
-    if st.button("Let's create a better dataset!"):
-        last_inserted_id = insert_participant_and_get_id()
-        st.session_state['participant_id'] = last_inserted_id
-        st.switch_page("pages/Rate_responses.py")
+    st.write("Please enter your unique Prolific ID such that we can record your participation.")
+    prolific_id = st.text_input("Enter your unique Prolific ID:", max_chars=50)
+    if st.button("Submit ID"):
+        if prolific_id:
+            last_inserted_id = insert_participant_and_get_id()
+            insert_prolific_id(last_inserted_id, prolific_id)
+            st.session_state['participant_id'] = last_inserted_id
+        else:
+            st.write("Please enter your Prolific ID to continue.")
+
+if 'participant_id' in st.session_state:
+    st.write("Let's create a better dataset!")
+    st.switch_page("pages/Rate_responses.py")
