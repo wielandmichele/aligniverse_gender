@@ -52,14 +52,16 @@ pool = create_engine(
     creator=getconn,
 )
 
-def update_participant(participant_id, age, gender_identity, country_of_residence, ancestry, ethnicity):
+def update_participant(participant_id, age, gender_identity, country_of_residence, ancestry, ethnicity, political_party, political_spectrum):
     update_query = text("""
     UPDATE df_participants
     SET age = :age,
         gender_identity = :gender_identity,
         country_of_residence = :country_of_residence,
         ancestry = :ancestry,
-        ethnicity = :ethnicity
+        ethnicity = :ethnicity,
+        political_party = :political_party,
+        political_spectrum = :political_spectrum
     WHERE participant_id = :participant_id
     """)
     with pool.connect() as connection:
@@ -69,7 +71,9 @@ def update_participant(participant_id, age, gender_identity, country_of_residenc
             'gender_identity': gender_identity,
             'country_of_residence': country_of_residence,
             'ancestry': ancestry,
-            'ethnicity': ethnicity
+            'ethnicity': ethnicity,
+            'political_party': political_party,
+            'political_spectrum': political_spectrum
         })
 
 ##start survey
@@ -101,6 +105,19 @@ racial_groups = [
     "White"
 ]
 
+political_parties = [
+    "I wish not to declare",
+    "SPD",
+    "CDU/CSU",
+    "Grüne",
+    "FDP",
+    "AfD",
+    "Linke",
+    "Piraten",
+    "Tier",
+    "Andere"
+]
+
 list_countries = sorted(df_countries["Country or Area"].to_list())
 list_countries.insert(0, "I wish not to declare")
 
@@ -119,6 +136,10 @@ q4_demo_str = json.dumps(q4_demo)
 q5_demo = survey.multiselect("Which racial group(s) do you identify with?", options=racial_groups, id="Q5_demo", max_selections = 3)
 q5_demo_str = json.dumps(q5_demo)
 
+q6_demo = survey.selectbox("Which political party would you be most likely to vote for?", options=political_parties, id="Q6_demo", index=None)
+
+q7_demo = survey.select_slider("Where do you see yourself on the political spectrum?", options=["Liberal", "Rather liberal", "Centre", "Rather conservative", "Conservative"], id="Q7_demo")
+
 def get_last_id():
     with pool.connect() as connection:
         last_id_query = text("SELECT LAST_INSERT_ID()")
@@ -130,10 +151,10 @@ if 'participant_id' not in st.session_state:
     last_id = get_last_id()
     st.session_state['participant_id'] = last_id
 
-if not all([q1_demo, q2_demo, q3_demo, q4_demo, q5_demo]):
+if not all([q1_demo, q2_demo, q3_demo, q4_demo, q5_demo, q6_demo, q7_demo]):
     st.write("Please select at least one option for every question. You always have the option not to declare.")
 
-elif all([q1_demo, q2_demo, q3_demo, q4_demo, q5_demo]):
+elif all([q1_demo, q2_demo, q3_demo, q4_demo, q5_demo, q6_demo, q7_demo]):
     if st.button("Submit"):
         update_participant(
             st.session_state['participant_id'], #participant
@@ -141,6 +162,8 @@ elif all([q1_demo, q2_demo, q3_demo, q4_demo, q5_demo]):
             q2_demo, #gender identity
             q3_demo_str, #country of residence
             q4_demo_str, #ancestry
-            q5_demo_str  #ethnicity
+            q5_demo_str,  #ethnicity
+            q6_demo, #political party
+            q7_demo #political spectrum
         )
         st.switch_page("pages/End_participation.py")

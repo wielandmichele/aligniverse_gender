@@ -183,11 +183,10 @@ with st.form(key = "form_rating", clear_on_submit= True):
 
 
 if st.session_state['count'] < 5:
-    st.write("Please rate at least 5 prompt-answer pairs to finish the survey.")
+    st.write("Please rate 5 prompt-answer pairs to finish the survey.")
     st.write(f"You have rated {st.session_state['count']} prompt-answer pairs so far.") 
 
 else:
-    st.write("You have rated at least 5 prompt-answer pairs and you can finish your participation now.")
-    if st.button("End participation"):
-        st.switch_page("pages/Demographics.py")
+    st.write("You have rated 5 prompt-answer pairs and you can finish your participation now.")
+    st.switch_page("pages/Demographics.py")
 
