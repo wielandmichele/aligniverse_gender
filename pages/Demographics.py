@@ -107,15 +107,8 @@ racial_groups = [
 
 political_parties = [
     "I wish not to declare",
-    "SPD",
-    "CDU/CSU",
-    "Grüne",
-    "FDP",
-    "AfD",
-    "Linke",
-    "Piraten",
-    "Tier",
-    "Andere"
+    "Democrats",
+    "Republicans"
 ]
 
 list_countries = sorted(df_countries["Country or Area"].to_list())
