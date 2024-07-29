@@ -7,7 +7,6 @@ from sqlalchemy import create_engine, text
 import pymysql
 import sqlalchemy
 import os
-import paramiko
 import pymysql
 from sshtunnel import SSHTunnelForwarder
 from fabric import Connection
