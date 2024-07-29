@@ -9,7 +9,6 @@ from sqlalchemy import create_engine, text
 import pymysql
 import sqlalchemy
 import os
-import paramiko
 import pymysql
 from sshtunnel import SSHTunnelForwarder
 from fabric import Connection
@@ -97,9 +96,12 @@ db_name = st.secrets["db_name"]
 db_port = st.secrets["db_port"]
 
 ### Set up SSH connection and port forwarding
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect(ssh_host, port=ssh_port, username=ssh_user, password=ssh_password)
+conn = Connection(
+    host=ssh_host,
+    port=ssh_port,
+    user=ssh_user,
+    connect_kwargs={"password": ssh_password},
+)
 
 # Set up port forwarding
 tunnel = SSHTunnelForwarder(
