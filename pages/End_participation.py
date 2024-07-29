@@ -1,14 +1,6 @@
 import streamlit as st
 import streamlit_survey as ss
-import json
-import pandas as pd
-from sqlalchemy import create_engine, text
-import pymysql
-import sqlalchemy
-import os
-import paramiko
-import pymysql
-from sshtunnel import SSHTunnelForwarder
+
 
 st.title("Thank you!")
 st.write("Thank you for being part of our study and helping us improve the alignment of Large Language Models.")
