@@ -13,3 +13,4 @@ PyMySQL
 st-files-connection
 paramiko
 sshtunnel
+fabric==3.2.2
