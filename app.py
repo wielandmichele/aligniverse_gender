@@ -12,6 +12,7 @@ import os
 import paramiko
 import pymysql
 from sshtunnel import SSHTunnelForwarder
+from fabric import Connection
 
 ##set config
 st.set_page_config(initial_sidebar_state="collapsed")
